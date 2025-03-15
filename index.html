@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Storyboarder</title>
+    <style>
+        /* Body Styles */
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: #f7f7f7;
+            color: #333;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            text-align: center;
+        }
+
+        /* Main Container */
+        .container {
+            width: 80%;
+            max-width: 900px;
+            background-color: #fff;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            font-size: 2.5em;
+            margin-bottom: 20px;
+            color: #2c3e50;
+        }
+
+        /* Textarea */
+        textarea {
+            width: 100%;
+            height: 100px;
+            padding: 10px;
+            font-size: 16px;
+            border-radius: 10px;
+            border: 1px solid #ddd;
+            margin-bottom: 20px;
+            box-sizing: border-box;
+            resize: none;
+        }
+
+        /* Style Select Dropdown */
+        select {
+            padding: 10px;
+            border-radius: 10px;
+            border: 1px solid #ddd;
+            background-color: #f9f9f9;
+            font-size: 16px;
+            margin-bottom: 20px;
+            cursor: pointer;
+        }
+
+        /* Button */
+        button {
+            background-color: #007bff;
+            color: white;
+            padding: 12px 25px;
+            border-radius: 30px;
+            border: none;
+            font-size: 18px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        button:disabled {
+            background-color: #cccccc;
+        }
+
+        /* Loading Spinner */
+        .loading {
+            display: none;
+            margin: 20px 0;
+        }
+
+        /* Output Section */
+        .scene-container {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+        }
+
+        .scene {
+            width: 30%;
+            padding: 15px;
+            background-color: #f9f9f9;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease-in-out;
+        }
+
+        .scene img {
+            width: 100%;
+            border-radius: 10px;
+            margin-top: 15px;
+            transition: transform 0.3s ease-in-out;
+        }
+
+        .scene:hover {
+            transform: translateY(-5px);
+        }
+
+        .scene img:hover {
+            transform: scale(1.05);
+        }
+
+        .error {
+            color: red;
+            font-weight: bold;
+        }
+
+        .success {
+            color: green;
+        }
+
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>AI Storyboarder</h1>
+        <textarea id="storyInput" placeholder="Enter your story idea..."></textarea><br>
+        
+        <label for="styleSelect">Select Style:</label>
+        <select id="styleSelect">
+            <option value="cinematic">Cinematic</option>
+            <option value="realism">Realism</option>
+            <option value="anime">Anime</option>
+            <option value="comic">Comic</option>
+        </select>
+        <br>
+        
+        <button id="generateBtn" onclick="generateStoryboard()">Generate Storyboard</button>
+        <div id="loading" class="loading">🔄 Generating storyboard, please wait...</div>
+        
+        <div id="output" class="scene-container"></div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

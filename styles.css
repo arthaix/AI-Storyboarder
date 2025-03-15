@@ -1,0 +1,44 @@
+body {
+    font-family: Arial, sans-serif;
+    text-align: center;
+    background-color: #f8f9fa;
+}
+
+h1 {
+    color: #333;
+}
+
+textarea {
+    width: 60%;
+    height: 100px;
+    margin-bottom: 10px;
+    font-size: 16px;
+}
+
+button {
+    padding: 10px 20px;
+    font-size: 16px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    cursor: pointer;
+}
+
+button:hover {
+    background-color: #0056b3;
+}
+
+#output {
+    margin-top: 20px;
+}
+
+img {
+    border: 1px solid #ddd;
+    padding: 5px;
+    margin-top: 10px;
+    width: 512px;
+    height: auto;
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+}
