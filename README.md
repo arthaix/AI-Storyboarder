@@ -25,7 +25,7 @@ Ensure you have the following installed:
  Installation Steps
 1. Clone the repository:
    ```sh
-   git clone https://github.com/your-repo/AI-Storyboarder.git
+   git clone https://github.com/arthaix/AI-Storyboarder.git
    cd AI-Storyboarder
    ```
 2. Install dependencies:
