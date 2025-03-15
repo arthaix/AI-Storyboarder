@@ -69,7 +69,7 @@ This project is licensed under the MIT License - see the `LICENSE` file for deta
 
  📬 Contact & Support
 For questions or feedback, feel free to reach out:
-- GitHub Issues: [Report a Bug](https://github.com/your-repo/AI-Storyboarder/issues)
+- GitHub Issues: [Report a Bug](https://github.com/arthaix/AI-Storyboarder/issues)
 
 🎬 Transform your ideas into AI-powered storyboards today! 🚀
 
