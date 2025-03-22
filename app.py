@@ -20,7 +20,7 @@ STYLE_PROMPTS = {
     "comic": "Comic book illustration, bold lines, vibrant colors."
 }
 
-# 🔄 Исправленный разбор сцен
+# 🔄 Improved
 def generate_full_scenes(user_prompt):
     try:
         print(f"🔄 Generating scenes for: {user_prompt}")
@@ -44,7 +44,7 @@ def generate_full_scenes(user_prompt):
         )
 
         raw_scenes = response.choices[0].message.content.strip()
-        print(f"📩 GPT Raw Response:\n{raw_scenes}")  # Лог для отладки
+        print(f"📩 GPT Raw Response:\n{raw_scenes}")  # Log
 
         scenes = raw_scenes.split("### Scene")
         scenes = [s.strip() for s in scenes if s.strip()]
@@ -59,7 +59,7 @@ def generate_full_scenes(user_prompt):
         print(f"❌ GPT Error: {e}")
         return ["Scene 1: Error", "Scene 2: Error", "Scene 3: Error"]
 
-# 🔄 Улучшенная генерация изображений
+# 🔄 Enhanced generation
 def generate_image(scene_text, style):
     if "Placeholder" in scene_text or "Error" in scene_text:
         print("🚨 Skipping image generation for placeholder scenes.")

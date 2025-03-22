@@ -6,8 +6,8 @@ async function generateStoryboard() {
     const generateBtn = document.getElementById("generateBtn");
 
     outputDiv.innerHTML = "";
-    loadingDiv.style.display = "block";  // Показываем индикатор загрузки
-    generateBtn.disabled = true;  // Отключаем кнопку
+    loadingDiv.style.display = "block";  // Showing loading indicator
+    generateBtn.disabled = true;  // Turning off the button
 
     try {
         const response = await fetch("http://127.0.0.1:5000/generate-storyboard", {
@@ -17,14 +17,14 @@ async function generateStoryboard() {
         });
 
         const data = await response.json();
-        loadingDiv.style.display = "none";  // Скрываем индикатор загрузки
-        generateBtn.disabled = false;  // Включаем кнопку
+        loadingDiv.style.display = "none";  // Hiding loading indicator
+        generateBtn.disabled = false;  // Turning on the button
 
         if (!data.storyboard || !Array.isArray(data.storyboard)) {
             throw new Error("Invalid response from server");
         }
 
-        // 🔄 Сортировка сцен по порядку (1 → 2 → 3)
+        // Sorting scenes (1-2-3)
         data.storyboard.sort((a, b) => {
             return parseInt(a.scene.split(" ")[1]) - parseInt(b.scene.split(" ")[1]);
         });
@@ -61,7 +61,7 @@ async function generateStoryboard() {
     }
 }
 
-// Функция для скачивания изображения
+// Download function
 function downloadImage(url, sceneName) {
     const link = document.createElement("a");
     link.href = url;
