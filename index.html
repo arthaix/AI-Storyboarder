@@ -1,152 +1,267 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Storyboarder</title>
-    <style>
-        /* Body Styles */
-        body {
-            font-family: 'Roboto', sans-serif;
-            background-color: #f7f7f7;
-            color: #333;
-            margin: 0;
-            padding: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            text-align: center;
-        }
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>AI Storyboarder</title>
+  <style>
+    body {
+      font-family: 'Roboto', sans-serif;
+      background-color: #f7f7f7;
+      color: #333;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      min-height: 100vh;
+    }
 
-        /* Main Container */
-        .container {
-            width: 80%;
-            max-width: 900px;
-            background-color: #fff;
-            padding: 30px;
-            border-radius: 15px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-        }
+    .container {
+      width: 95%;
+      max-width: 1200px;
+      background-color: #fff;
+      padding: 30px;
+      margin: 40px auto;
+      border-radius: 15px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
 
-        h1 {
-            font-size: 2.5em;
-            margin-bottom: 20px;
-            color: #2c3e50;
-        }
+    h1 {
+      font-size: 2.5em;
+      margin-bottom: 20px;
+      color: #2e97ff;
+      text-align: center;
+    }
 
-        /* Textarea */
-        textarea {
-            width: 100%;
-            height: 100px;
-            padding: 10px;
-            font-size: 16px;
-            border-radius: 10px;
-            border: 1px solid #ddd;
-            margin-bottom: 20px;
-            box-sizing: border-box;
-            resize: none;
-        }
+    label {
+      font-weight: bold;
+      display: block;
+      margin: 10px 0 5px;
+      text-align: left;
+    }
 
-        /* Style Select Dropdown */
-        select {
-            padding: 10px;
-            border-radius: 10px;
-            border: 1px solid #ddd;
-            background-color: #f9f9f9;
-            font-size: 16px;
-            margin-bottom: 20px;
-            cursor: pointer;
-        }
+    textarea, select, input {
+      width: 100%;
+      padding: 10px;
+      font-size: 16px;
+      border-radius: 10px;
+      border: 1px solid #ddd;
+      margin-bottom: 15px;
+      box-sizing: border-box;
+    }
 
-        /* Button */
-        button {
-            background-color: #007bff;
-            color: white;
-            padding: 12px 25px;
-            border-radius: 30px;
-            border: none;
-            font-size: 18px;
-            cursor: pointer;
-            transition: background-color 0.3s ease;
-        }
+    button {
+      background-color: #007bff;
+      color: white;
+      padding: 12px 25px;
+      border-radius: 30px;
+      border: none;
+      font-size: 16px;
+      cursor: pointer;
+      margin: 10px 10px 0 0;
+      transition: background-color 0.3s ease;
+    }
 
-        button:hover {
-            background-color: #0056b3;
-        }
+    button:hover {
+      background-color: #0056b3;
+    }
 
-        button:disabled {
-            background-color: #cccccc;
-        }
+    .loading {
+      display: none;
+      margin: 20px 0;
+      text-align: center;
+    }
 
-        /* Loading Spinner */
-        .loading {
-            display: none;
-            margin: 20px 0;
-        }
+    .section {
+      margin-top: 40px;
+    }
 
-        /* Output Section */
-        .scene-container {
-            display: flex;
-            justify-content: space-between;
-            margin-top: 20px;
-        }
+    .scene h3 {
+      margin-bottom: 15px;
+      font-size: 1.6em;
+      border-bottom: 2px solid #ccc;
+      padding-bottom: 5px;
+    }
 
-        .scene {
-            width: 30%;
-            padding: 15px;
-            background-color: #f9f9f9;
-            border-radius: 10px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-            transition: transform 0.3s ease-in-out;
-        }
+    .shots-container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 20px;
+      justify-content: flex-start;
+    }
 
-        .scene img {
-            width: 100%;
-            border-radius: 10px;
-            margin-top: 15px;
-            transition: transform 0.3s ease-in-out;
-        }
+    .shot-card {
+      flex: 1 1 300px;
+      border: 1px solid #ccc;
+      border-radius: 10px;
+      padding: 10px;
+      background-color: #fff;
+    }
 
-        .scene:hover {
-            transform: translateY(-5px);
-        }
+    .shot-card img {
+      width: 100%;
+      border-radius: 8px;
+      margin-bottom: 10px;
+    }
 
-        .scene img:hover {
-            transform: scale(1.05);
-        }
+    .dark-mode {
+      background-color: #121212;
+      color: #eee;
+    }
 
-        .error {
-            color: red;
-            font-weight: bold;
-        }
+    .dark-mode .container {
+      background-color: #1e1e1e;
+      color: #eee;
+    }
 
-        .success {
-            color: green;
-        }
+    .dark-mode textarea,
+    .dark-mode select,
+    .dark-mode input,
+    .dark-mode button {
+      background-color: #2b2b2b;
+      color: #eee;
+      border: 1px solid #444;
+    }
 
-    </style>
+    .dark-mode .shot-card {
+      background-color: #2a2a2a;
+      border-color: #444;
+    }
+
+    /* Новые стили для чекбокса тёмного режима */
+    .dark-mode-label {
+      display: inline-flex;
+      align-items: center;
+      margin-left: 20px;
+      cursor: pointer;
+    }
+
+    .dark-mode-label input[type="checkbox"] {
+      margin-right: 8px;
+      width: 18px;
+      height: 18px;
+    }
+
+    .dark-mode-label span {
+      font-size: 16px;
+    }
+
+    .dark-mode .dark-mode-label {
+      color: #eee;
+    }
+
+    .dark-mode .dark-mode-label input[type="checkbox"] {
+      background-color: #2b2b2b;
+      border: 1px solid #444;
+    }
+
+    footer {
+      margin-top: 40px;
+      font-size: 13px;
+      text-align: center;
+      color: #777;
+    }
+  </style>
 </head>
 <body>
-    <div class="container">
-        <h1>AI Storyboarder</h1>
-        <textarea id="storyInput" placeholder="Enter your story idea..."></textarea><br>
-        
-        <label for="styleSelect">Select Style:</label>
-        <select id="styleSelect">
-            <option value="cinematic">Cinematic</option>
-            <option value="realism">Realism</option>
-            <option value="anime">Anime</option>
-            <option value="comic">Comic</option>
-        </select>
-        <br>
-        
-        <button id="generateBtn" onclick="generateStoryboard()">Generate Storyboard</button>
-        <div id="loading" class="loading">🔄 Generating storyboard, please wait...</div>
-        
-        <div id="output" class="scene-container"></div>
+  <div class="container">
+    <h1>AI Storyboarder</h1>
+
+    <!-- Story Input -->
+    <label for="storyInput">Story Idea:</label>
+    <textarea id="storyInput" placeholder="Enter your story idea..."></textarea>
+
+    <!-- Character Editor -->
+    <div class="section">
+      <h3>Character Editor</h3>
+      <label for="charName">Name:</label>
+      <input type="text" id="charName" placeholder="e.g. Anna">
+
+      <label for="charAppearance">Appearance:</label>
+      <input type="text" id="charAppearance" placeholder="e.g. red armor, short black hair">
+
+      <label for="charOutfit">Outfit:</label>
+      <input type="text" id="charOutfit" placeholder="e.g. pilot suit with helmet">
+
+      <label for="charPersonality">Personality:</label>
+      <input type="text" id="charPersonality" placeholder="e.g. brave, determined">
+
+      <label for="charMotivation">Motivation:</label>
+      <input type="text" id="charMotivation" placeholder="e.g. survive and uncover secrets">
+
+      <button onclick="generateCharacter()">Generate Character Description</button>
+
+      <label for="characterInput">Main Character Description:</label>
+      <textarea id="characterInput" placeholder="Will be auto-filled by editor above"></textarea>
     </div>
 
-    <script src="script.js"></script>
-</body>
+    <!-- Style and Camera -->
+    <label for="cameraSelect">Default Camera Angle:</label>
+    <select id="cameraSelect">
+      <option value="wide shot">Wide Shot</option>
+      <option value="medium shot">Medium Shot</option>
+      <option value="close-up">Close-Up</option>
+      <option value="over-the-shoulder">Over-the-Shoulder</option>
+      <option value="establishing shot">Establishing Shot</option>
+    </select>
+
+    <label for="styleSelect">Select Style:</label>
+    <select id="styleSelect">
+      <option value="cinematic">Cinematic</option>
+      <option value="realism">Realism</option>
+      <option value="anime">Anime</option>
+      <option value="comic">Comic</option>
+    </select>
+
+    <!-- Generate -->
+    <button id="generateBtn" onclick="generateStoryboard()">Generate Storyboard</button>
+    <button onclick="clearForm()">Clear</button>
+    <label class="dark-mode-label" for="darkModeToggle">
+      <input type="checkbox" id="darkModeToggle" onchange="toggleDarkMode()">
+      <span>🌙 Dark Mode</span>
+    </label>
+
+    <!-- Output -->
+    <div id="loading" class="loading">🔄 Generating storyboard, please wait...</div>
+    <h2 id="resultsTitle" style="margin-top: 40px; display:none;">Generated Storyboard:</h2>
+    <div id="output"></div>
+
+    <footer>
+      Powered by OpenAI (GPT + DALL·E 3) | Made by Alex Usenko – AI Elective 2025
+    </footer>
+  </div>
+
+  <script src="script.js"></script>
+  <script>
+    function clearForm() {
+      document.getElementById("storyInput").value = "";
+      document.getElementById("characterInput").value = "";
+      document.getElementById("charName").value = "";
+      document.getElementById("charAppearance").value = "";
+      document.getElementById("charOutfit").value = "";
+      document.getElementById("charPersonality").value = "";
+      document.getElementById("charMotivation").value = "";
+      document.getElementById("cameraSelect").selectedIndex = 0;
+      document.getElementById("styleSelect").selectedIndex = 0;
+      document.getElementById("output").innerHTML = "";
+      document.getElementById("resultsTitle").style.display = "none";
+    }
+
+    function toggleDarkMode() {
+      document.body.classList.toggle("dark-mode");
+    }
+
+    function generateCharacter() {
+      const name = document.getElementById("charName").value;
+      const appearance = document.getElementById("charAppearance").value;
+      const outfit = document.getElementById("charOutfit").value;
+      const personality = document.getElementById("charPersonality").value;
+      const motivation = document.getElementById("charMotivation").value;
+
+      const description = `${name}, ${personality} character wearing ${outfit}, with ${appearance}. Motivated by ${motivation}.`;
+      document.getElementById("characterInput").value = description;
+    }
+  </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9249b1353f88676f',t:'MTc0MjY4ODQ4NC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>

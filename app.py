@@ -1,17 +1,15 @@
+
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 import openai
 import os
-import threading
+import json
+import time
 
 app = Flask(__name__)
 CORS(app)
 
-openai_api_key = os.getenv("OPENAI_API_KEY")
-if not openai_api_key:
-    raise ValueError("Missing OpenAI API Key! Set it as an environment variable.")
-
-client = openai.OpenAI(api_key=openai_api_key)
+openai.api_key = os.getenv("OPENAI_API_KEY")
 
 STYLE_PROMPTS = {
     "cinematic": "Highly detailed, realistic, cinematic shot, dramatic lighting.",
@@ -20,106 +18,134 @@ STYLE_PROMPTS = {
     "comic": "Comic book illustration, bold lines, vibrant colors."
 }
 
-# 🔄 Improved
-def generate_full_scenes(user_prompt):
+def dalle_prompt(style, character_description, camera_angle, shot_description, emotion):
+    return f"""
+{STYLE_PROMPTS.get(style, "Cinematic, high detail")}
+
+Character: {character_description}
+Camera angle: {camera_angle}
+Shot: {shot_description}
+Emotion: {emotion}
+
+- One cinematic frame.
+- No collage. No multi-panel. No text.
+"""
+
+def generate_image(prompt):
     try:
-        print(f"🔄 Generating scenes for: {user_prompt}")
-        response = client.chat.completions.create(
-            model="gpt-4-turbo",
-            messages=[
-                {
-                    "role": "system",
-                    "content": "You are a professional scriptwriter. Given a short idea, break it into exactly three structured scenes. "
-                               "Each scene must have:\n"
-                               "- **Title** (short, 5-7 words)\n"
-                               "- **Setting** (where it happens)\n"
-                               "- **Characters** (who is involved)\n"
-                               "- **Actions** (what is happening)\n"
-                               "- **Mood** (atmosphere and emotions)\n"
-                               "Each scene should be separated by `### Scene X:`."
-                },
-                {"role": "user", "content": f"Create a structured three-scene breakdown for: {user_prompt}"}
-            ],
-            max_tokens=700
-        )
-
-        raw_scenes = response.choices[0].message.content.strip()
-        print(f"📩 GPT Raw Response:\n{raw_scenes}")  # Log
-
-        scenes = raw_scenes.split("### Scene")
-        scenes = [s.strip() for s in scenes if s.strip()]
-
-        if len(scenes) < 3:
-            print(f"⚠️ GPT вернул {len(scenes)} сцен вместо 3. Генерируем снова...")
-            return ["Scene 1: No data", "Scene 2: No data", "Scene 3: No data"]
-
-        return scenes[:3]
-    
-    except Exception as e:
-        print(f"❌ GPT Error: {e}")
-        return ["Scene 1: Error", "Scene 2: Error", "Scene 3: Error"]
-
-# 🔄 Enhanced generation
-def generate_image(scene_text, style):
-    if "Placeholder" in scene_text or "Error" in scene_text:
-        print("🚨 Skipping image generation for placeholder scenes.")
-        return None
-
-    full_prompt = f"""
-        {STYLE_PROMPTS.get(style, "Cinematic, realistic style")}  
-
-        **Scene Description**: {scene_text}
-
-        - High detail, strong composition.
-        - Single-frame shot, not a storyboard.
-        - No multiple panels, no split frames.
-    """
-    try:
-        print(f"🔄 Sending prompt to DALL·E:\n{full_prompt}")
-        response = client.images.generate(
+        print("Generating image...")
+        response = openai.images.generate(
             model="dall-e-3",
-            prompt=full_prompt,
+            prompt=prompt,
             n=1,
             size="1024x1024"
         )
-        image_url = response.data[0].url if response.data else None
-        print(f"✅ Image Generated: {image_url}")
-        return image_url
+        time.sleep(12)  # respect DALL·E rate limit
+        return response.data[0].url if response.data else "Image not generated"
     except Exception as e:
-        print(f"❌ Image Generation Error: {e}")
-        return None
+        print("❌ Image generation failed:", e)
+        return "Image not generated"
 
-@app.route('/generate-storyboard', methods=['POST'])
+@app.route("/generate-storyboard", methods=["POST"])
 def generate_storyboard():
     data = request.json
-    user_prompt = data.get("prompt", "A random adventure")
-    style = data.get("style", "cinematic")
+    prompt = data.get("prompt", "")
+    character = data.get("character", "")
+    camera = data.get("camera", "")
+    style = data.get("style", "")
 
-    print(f"🚀 User request: {user_prompt} (Style: {style})")
+    try:
+        gpt_response = openai.chat.completions.create(
+            model="gpt-3.5-turbo",
+            messages=[
+                {"role": "system", "content": f"""
+Generate a JSON array of exactly 3 scenes for a storyboard.
+Each scene must contain:
+- scene_number
+- title
+- shots: array of 2–3 shots, each with:
+  - frame_number
+  - description
+  - camera_angle
+  - shot_type
+  - emotion
+  - dialogue
 
-    scenes = generate_full_scenes(user_prompt)
-    images = []
+Use this character throughout: {character}
+Start wide, then go closer.
 
-    def process_scene(i, scene):
-        short_description = scene.split("\n")[0] if isinstance(scene, str) else "No description available"
-        image_url = generate_image(scene, style)
+Return ONLY JSON.
+"""},
+                {"role": "user", "content": f"Prompt: {prompt}"}
+            ],
+            max_tokens=1600
+        )
 
-        images.append({
-            "scene": f"Scene {i+1}",
-            "description": short_description,
-            "image_url": image_url if image_url else "Error: Image not generated."
-        })
+        scenes = json.loads(gpt_response.choices[0].message.content.strip())
 
-    threads = []
-    for i, scene in enumerate(scenes):
-        t = threading.Thread(target=process_scene, args=(i, scene))
-        t.start()
-        threads.append(t)
+        for scene in scenes:
+            for shot in scene["shots"]:
+                prompt_text = f"{shot['description']} (Emotion: {shot['emotion']})"
+                full_prompt = dalle_prompt(style, character, shot["camera_angle"], prompt_text, shot["emotion"])
+                shot["image_url"] = generate_image(full_prompt)
 
-    for t in threads:
-        t.join()
+        return jsonify({"storyboard": scenes})
 
-    return jsonify({"storyboard": images})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
-if __name__ == '__main__':
+@app.route("/regenerate-scene", methods=["POST"])
+def regenerate_scene():
+    data = request.json
+    scene = data["scene"]
+    style = data["style"]
+    character = data["character"]
+
+    for shot in scene["shots"]:
+        prompt_text = f"{shot['description']} (Emotion: {shot['emotion']})"
+        full_prompt = dalle_prompt(style, character, shot["camera_angle"], prompt_text, shot["emotion"])
+        shot["image_url"] = generate_image(full_prompt)
+
+    return jsonify(scene)
+
+@app.route("/regenerate-shot", methods=["POST"])
+def regenerate_shot():
+    data = request.json
+    shot = data["shot"]
+    style = data["style"]
+    character = data["character"]
+
+    prompt_text = f"{shot['description']} (Emotion: {shot['emotion']})"
+    full_prompt = dalle_prompt(style, character, shot["camera_angle"], prompt_text, shot["emotion"])
+    shot["image_url"] = generate_image(full_prompt)
+
+    return jsonify(shot)
+
+@app.route("/add-shot", methods=["POST"])
+def add_shot():
+    data = request.json
+    style = data["style"]
+    character = data["character"]
+    camera = data["camera"]
+
+    shot = {
+        "frame_number": data.get("frame_number"),
+        "description": data.get("description", "New action shot"),
+        "camera_angle": camera,
+        "shot_type": "static",
+        "emotion": "neutral",
+        "dialogue": "",
+    }
+
+    prompt_text = f"{shot['description']} (Emotion: {shot['emotion']})"
+    full_prompt = dalle_prompt(style, character, shot["camera_angle"], prompt_text, shot["emotion"])
+    shot["image_url"] = generate_image(full_prompt)
+
+    return jsonify(shot)
+
+@app.route("/delete-shot", methods=["POST"])
+def delete_shot():
+    return jsonify({"deleted": True})
+
+if __name__ == "__main__":
     app.run(debug=True)
