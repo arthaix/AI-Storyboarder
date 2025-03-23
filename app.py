@@ -43,7 +43,7 @@ def generate_image(prompt):
         time.sleep(12)  # respect DALL·E rate limit
         return response.data[0].url if response.data else "Image not generated"
     except Exception as e:
-        print("❌ Image generation failed:", e)
+        print("Image generation failed:", e)
         return "Image not generated"
 
 @app.route("/generate-storyboard", methods=["POST"])
