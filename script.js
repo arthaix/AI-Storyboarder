@@ -35,7 +35,7 @@ async function generateStoryboard() {
         renderStoryboard();
 
     } catch (error) {
-        console.error("🚨 Error:", error);
+        console.error("Error:", error);
         loadingDiv.style.display = "none";
         outputDiv.innerHTML = "<p style='color: red;'>Error generating storyboard. Please try again.</p>";
     }
@@ -44,7 +44,6 @@ async function generateStoryboard() {
 function renderStoryboard() {
     const outputDiv = document.getElementById("output");
     outputDiv.innerHTML = "";
-
     if (!Array.isArray(currentStoryboard)) return;
     document.getElementById("resultsTitle").style.display = "block";
 
@@ -52,32 +51,63 @@ function renderStoryboard() {
         const sceneWrapper = document.createElement("div");
         sceneWrapper.classList.add("scene");
 
+        // Scene header with editable title
         const sceneHeader = document.createElement("h3");
         sceneHeader.innerText = `Scene ${scene.scene_number}: ${scene.title}`;
+        sceneWrapper.appendChild(sceneHeader);
 
-        const sceneControls = document.createElement("div");
-        sceneControls.style.marginBottom = "10px";
-        const regenBtn = document.createElement("button");
-        regenBtn.innerText = "Regenerate Scene";
-        regenBtn.onclick = async () => {
-            const res = await fetch("http://127.0.0.1:5000/regenerate-scene", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    scene: scene,
-                    style: document.getElementById("styleSelect").value,
-                    character: document.getElementById("characterInput").value
-                })
-            });
-            const updated = await res.json();
-            currentStoryboard[sceneIndex] = updated;
-            renderStoryboard();
+        // Display narrative if available
+        if (scene.narrative) {
+            const narrativePara = document.createElement("p");
+            narrativePara.innerText = scene.narrative;
+            sceneWrapper.appendChild(narrativePara);
+        }
+
+        // Section for manual editing of scene title and narrative
+        const editSection = document.createElement("div");
+        editSection.classList.add("edit-scene");
+
+        const editTitleInput = document.createElement("input");
+        editTitleInput.type = "text";
+        editTitleInput.value = scene.title;
+        editTitleInput.placeholder = "Edit scene title";
+        editTitleInput.onchange = () => {
+            scene.title = editTitleInput.value;
+            sceneHeader.innerText = `Scene ${scene.scene_number}: ${scene.title}`;
         };
 
-        sceneControls.appendChild(regenBtn);
-        sceneWrapper.appendChild(sceneHeader);
-        sceneWrapper.appendChild(sceneControls);
+        const editNarrativeInput = document.createElement("textarea");
+        editNarrativeInput.value = scene.narrative || "";
+        editNarrativeInput.placeholder = "Edit scene narrative";
+        editNarrativeInput.onchange = () => {
+            scene.narrative = editNarrativeInput.value;
+        };
 
+        editSection.appendChild(editTitleInput);
+        editSection.appendChild(editNarrativeInput);
+        sceneWrapper.appendChild(editSection);
+
+        // Allow per-scene style override
+        const sceneStyleLabel = document.createElement("label");
+        sceneStyleLabel.innerText = "Scene Style:";
+        const sceneStyleSelect = document.createElement("select");
+        ["cinematic", "realism", "anime", "comic"].forEach(styleOption => {
+            const opt = document.createElement("option");
+            opt.value = styleOption;
+            opt.innerText = styleOption;
+            if (scene.scene_style && scene.scene_style === styleOption) {
+                opt.selected = true;
+            }
+            sceneStyleSelect.appendChild(opt);
+        });
+        sceneStyleSelect.onchange = () => {
+            scene.scene_style = sceneStyleSelect.value;
+            // Optionally, you can trigger regeneration of the scene images here
+        };
+        sceneWrapper.appendChild(sceneStyleLabel);
+        sceneWrapper.appendChild(sceneStyleSelect);
+
+        // Render shots
         const shotsContainer = document.createElement("div");
         shotsContainer.classList.add("shots-container");
 
@@ -115,7 +145,7 @@ function renderStoryboard() {
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({
                         shot: shot,
-                        style: document.getElementById("styleSelect").value,
+                        style: scene.scene_style || document.getElementById("styleSelect").value,
                         character: document.getElementById("characterInput").value
                     })
                 });
@@ -140,7 +170,7 @@ function renderStoryboard() {
                     body: JSON.stringify({
                         description: "Follow-up action",
                         frame_number: shot.frame_number + 1,
-                        style: document.getElementById("styleSelect").value,
+                        style: scene.scene_style || document.getElementById("styleSelect").value,
                         character: document.getElementById("characterInput").value,
                         camera: document.getElementById("cameraSelect").value
                     })
@@ -162,6 +192,29 @@ function renderStoryboard() {
         });
 
         sceneWrapper.appendChild(shotsContainer);
+
+        // Scene-level control: regenerate entire scene
+        const sceneControls = document.createElement("div");
+        sceneControls.style.marginTop = "10px";
+        const regenSceneBtn = document.createElement("button");
+        regenSceneBtn.innerText = "Regenerate Scene";
+        regenSceneBtn.onclick = async () => {
+            const res = await fetch("http://127.0.0.1:5000/regenerate-scene", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    scene: scene,
+                    style: scene.scene_style || document.getElementById("styleSelect").value,
+                    character: document.getElementById("characterInput").value
+                })
+            });
+            const updated = await res.json();
+            currentStoryboard[sceneIndex] = updated;
+            renderStoryboard();
+        };
+        sceneControls.appendChild(regenSceneBtn);
+        sceneWrapper.appendChild(sceneControls);
+
         outputDiv.appendChild(sceneWrapper);
     });
 }
